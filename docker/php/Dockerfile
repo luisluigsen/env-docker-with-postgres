@@ -12,15 +12,21 @@ RUN echo "alias sf=/appdata/www/bin/console" >> /home/appuser/.bashrc
 
 # Install packages and PHP extensions
 RUN apt update \
-    && apt install -y git acl openssl openssh-client wget zip vim librabbitmq-dev libssh-dev \
+    # common libraries and extensions
+    && apt install -y git acl openssl openssh-client wget zip \
     && apt install -y libpng-dev zlib1g-dev libzip-dev libxml2-dev libicu-dev \
     && docker-php-ext-install intl pdo zip \
     # for MySQL
     && docker-php-ext-install pdo_mysql \
     # for Postgres
     && apt install -y libpq-dev \
-    && docker-php-ext-install pdo_pgsql \    && pecl install xdebug \
-    && docker-php-ext-enable --ini-name 05-opcache.ini opcache xdebug
+    && docker-php-ext-install pdo_pgsql \
+    # for RabbitMQ and XDEBUG
+    && docker-php-ext-install bcmath sockets \
+    && apt install -y librabbitmq-dev vim libssh-dev \
+    && pecl install xdebug amqp-1.11.0RC1 \
+    # enable Docker extensions
+    && docker-php-ext-enable --ini-name 05-opcache.ini opcache xdebug amqp
 
 # Install and update composer
 RUN curl https://getcomposer.org/composer.phar -o /usr/bin/composer && chmod +x /usr/bin/composer
